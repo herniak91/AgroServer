@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hwilliams.agroServer.model.Usuario;
+import com.hwilliams.agroServer.service.HTMLParser;
 import com.hwilliams.agroServer.service.UsuarioService;
 
 @RestController
@@ -21,6 +21,9 @@ public class Consultas {
 	
 	@Autowired
 	private UsuarioService usuarioService;
+	
+	@Autowired
+	private HTMLParser htmlParser;
 	
 	@RequestMapping(value="/test")
 	public String test(){
@@ -43,12 +46,12 @@ public class Consultas {
 	}
 	
 	@RequestMapping(value="/getClima")
-	public String getClimaHtml(){
+	public void getClimaHtml(){
 		try {
-			return Jsoup.connect("").get().select(".css_class").html();
+			htmlParser.getValoresMercado();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "Unable to get or parse html";
 		}
 	}
 	
