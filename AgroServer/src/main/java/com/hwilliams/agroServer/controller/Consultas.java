@@ -45,13 +45,16 @@ public class Consultas {
 		return usuarioService.getUserById("COTO", "youMammaIsSoFat...");
 	}
 	
-	@RequestMapping(value="/getClima")
-	public void getClimaHtml(){
+	@RequestMapping(value="/getHomeInfo")
+	public Object getClimaHtml(){
+		Map<String, Object> informacionGral = new HashMap<>();
 		try {
-			htmlParser.getValoresMercado();
+			informacionGral.put("DOLAR", htmlParser.getCotizacionDolar());
+			informacionGral.put("COTIZACIONES", htmlParser.getValoresMercado());
+			return informacionGral;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return "Informacion de clima no encontrada";
 		}
 	}
 	
