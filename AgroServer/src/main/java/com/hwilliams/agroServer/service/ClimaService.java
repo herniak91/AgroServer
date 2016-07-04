@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import com.hwilliams.agroServer.db.model.Clima;
+import com.hwilliams.agroServer.bean.Clima;
 import com.hwilliams.agroServer.service.util.HTMLParser;
 
 @Service

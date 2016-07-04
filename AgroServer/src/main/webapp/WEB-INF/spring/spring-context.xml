@@ -1,24 +1,45 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context.xsd
         http://www.springframework.org/schema/tx
-        http://www.springframework.org/schema/tx/spring-tx.xsd">
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
 
-	<context:component-scan base-package="com.hwilliams.agroServer.service, com.hwilliams.agroServer.db" />
+	<!-- <context:property-placeholder location="file://${agroConfig}/cfg/context-config.properties" 
+		/> -->
+	<context:annotation-config/>
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	<context:component-scan
+		base-package="com.hwilliams.agroServer.service, com.hwilliams.agroServer.db" />
+ 	<mybatis:scan base-package="com.hwilliams.agroServer.db" />
 
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.postgresql.Driver" />
-		<property name="url" value="jdbc:postgresql://postgresql:5432/beneficios_ti" />
+		<property name="url" value="jdbc:postgresql://localhost:5432/agro_db_2" />
 		<property name="username" value="postgres" />
 		<property name="password" value="password" />
 	</bean>
 
-	<bean class="org.springframework.jdbc.core.JdbcTemplate">
-		<constructor-arg name="dataSource" ref="dataSource" />
+<!-- 	<bean name="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="agrodb"></property>
+	</bean> -->
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+ 	
+<!-- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	    <property name="basePackage" value="com.hwilliams.agroServer.db"/>
+	</bean> -->
+	
+ 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
 	</bean>
 
 </beans>

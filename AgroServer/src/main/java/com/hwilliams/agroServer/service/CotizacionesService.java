@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import com.hwilliams.agroServer.db.model.Cotizacion;
+import com.hwilliams.agroServer.bean.Cotizacion;
 import com.hwilliams.agroServer.service.util.HTMLParser;
 
 @Service

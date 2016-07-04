@@ -1,7 +1,7 @@
 package com.hwilliams.agroServer.service.util;
 
-public enum EstadoPrestacion {
+public enum EstadoParqueMaquina {
 	
-	OK, ERR, PEND;
+	LIBRE, OCUP, PEND;
 
 }
