@@ -1,12 +1,5 @@
 package com.hwilliams.agroServer.controller;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import org.jasypt.util.password.ConfigurablePasswordEncryptor;
-import org.jasypt.util.password.PasswordEncryptor;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.gson.Gson;
+import com.hwilliams.agroServer.controller.util.GenericJsonResponse;
 import com.hwilliams.agroServer.db.model.Usuario;
 import com.hwilliams.agroServer.service.PerfilService;
 
@@ -28,25 +22,34 @@ public class PerfilController {
 	
 	@RequestMapping(value = "crear", method = RequestMethod.POST)
 	@ResponseBody
-	public Usuario crearPerfil(@RequestBody String jsonUser) {
-		Usuario user = createObject(jsonUser, Usuario.class);
+	public GenericJsonResponse crearPerfil(@RequestParam("jsonString") String jsonString) {
+		Usuario user = createObject(jsonString, Usuario.class);
 		service.crearPerfil(user);
-		return user;
+		return GenericJsonResponse.createErrorResponse(user);
 	}
 	
 	@RequestMapping(value = "login", method = RequestMethod.POST)
 	@ResponseBody
-	public Usuario login(@RequestParam("id") Integer id, @RequestParam("password") String password){
+	public GenericJsonResponse login(@RequestParam("id") Integer id, @RequestParam("password") String password){
+		System.out.println("ID: " + id + " y Password: " + password);
 		Usuario user = service.loginUsuario(id, password);
-		return user;
+		return GenericJsonResponse.createErrorResponse(user);
 	}
 
 	@RequestMapping(value = "actualizar")
 	@ResponseBody
-	public Usuario actualizarPerfil(@RequestBody String jsonUser){
+	public GenericJsonResponse actualizarPerfil(@RequestBody String jsonUser){
 		Usuario user = createObject(jsonUser, Usuario.class);
 		service.actualizarPerfil(user, user);
-		return user;
+		return GenericJsonResponse.createErrorResponse(user);
+	}
+	
+	@RequestMapping(value = "verificarUsername")
+	@ResponseBody
+	public Integer verificarUsername(@RequestParam("username") String username){
+		if (service.verificarUsername(username))
+			return 0;
+		return 1;
 	}
 	
 	@RequestMapping(value = "borrar")
