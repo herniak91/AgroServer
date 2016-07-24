@@ -1,12 +1,19 @@
 package com.hwilliams.agroServer.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.hwilliams.agroServer.controller.util.GenericJsonResponse;
+import com.hwilliams.agroServer.db.model.Maquina;
 import com.hwilliams.agroServer.service.ParqueMaquinaService;
 
 @Controller
@@ -17,12 +24,18 @@ public class ParqueMaquinaController {
 	private ParqueMaquinaService service;
 	
 	@RequestMapping(value = "crear")
-	public void solicitarPrestacion(@RequestBody JSONObject jsonParque) {
-	
+	@ResponseBody
+	public GenericJsonResponse crearParqueMaquina(@RequestBody JSONObject jsonParque) {
+		String username = (String) jsonParque.get("username");
+		String rubro = (String) jsonParque.get("rubro");
+		JSONArray maquinasArray = (JSONArray) jsonParque.get("maquinas");
+		List<Maquina> maquinas = new ArrayList<>();
+		for (Object object : maquinasArray) {
+			JSONObject json = (JSONObject) object;
+		}
 		
-		
-//		ParqueMaquina prestacion = BeanFactory.createParqueMaquina(propietarioId, clienteId, maquinaId, fechaDesde, fechaHasta);
-//		service.crearParqueMaquina(usuarioId, rubro, maquinas);
+		service.crearParqueMaquina(username, rubro, maquinas);
+		return GenericJsonResponse.createResponse(null);
 	}
 	
 	@RequestMapping(value="confirmar")

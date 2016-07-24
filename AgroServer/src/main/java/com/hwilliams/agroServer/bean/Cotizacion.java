@@ -4,6 +4,7 @@ public class Cotizacion {
 	private String nombre;
 	private String valor;
 	private String variacion;
+	private String indicador;
 	private String mercado;
 	
 	public String getNombre() {
@@ -29,5 +30,11 @@ public class Cotizacion {
 	}
 	public void setMercado(String mercado) {
 		this.mercado = mercado;
+	}
+	public String getIndicador() {
+		return indicador;
+	}
+	public void setIndicador(String indicador) {
+		this.indicador = indicador;
 	}
 }

@@ -1,5 +1,8 @@
 package com.hwilliams.agroServer.controller;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,10 +33,20 @@ public class PerfilController {
 	
 	@RequestMapping(value = "login", method = RequestMethod.POST)
 	@ResponseBody
-	public GenericJsonResponse login(@RequestParam("id") Integer id, @RequestParam("password") String password){
-		System.out.println("ID: " + id + " y Password: " + password);
-		Usuario user = service.loginUsuario(id, password);
-		return GenericJsonResponse.createErrorResponse(user);
+	public GenericJsonResponse login(@RequestParam("jsonString") String jsonString){
+		JSONParser parser = new JSONParser();
+		JSONObject json;
+		try {
+			json = (JSONObject) parser.parse(jsonString);
+			String username = (String) json.get("username");
+			String password = (String) json.get("password");
+			System.out.println("Username: " + username + " y Password: " + password);
+			Usuario user = service.loginUsuario(username, password);
+			return GenericJsonResponse.createResponse(user);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return GenericJsonResponse.createErrorResponse(null);
 	}
 
 	@RequestMapping(value = "actualizar")
@@ -50,6 +63,13 @@ public class PerfilController {
 		if (service.verificarUsername(username))
 			return 0;
 		return 1;
+	}
+	
+	@RequestMapping(value = "actualizarPass123")
+	@ResponseBody
+	public boolean actualizarPass123(@RequestParam("username") String username, @RequestParam("password") String password){
+		service.actualizarContrasenia(username, password);
+		return true;
 	}
 	
 	@RequestMapping(value = "borrar")

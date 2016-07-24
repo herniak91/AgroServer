@@ -1,7 +1,10 @@
 package com.hwilliams.agroServer.service;
 
+import java.util.List;
+
 import org.jasypt.util.password.ConfigurablePasswordEncryptor;
 import org.jasypt.util.password.PasswordEncryptor;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,18 +32,14 @@ public class PerfilService {
 		return user;
 	}
 
-	public Usuario loginUsuario(Integer id, String password) {
-		Usuario user = buscarUsuario(id);
+	public Usuario loginUsuario(String username, String password) {
+		Usuario user = buscarUsuario(username);
 		checkPassword(password, user.getPassword());
 		return user;
 	}
 
 	public void actualizarPerfil(Usuario user, Usuario modifaciones) {
-		if (null == user.getId()){
-			System.out.println("Usuario no tiene id. No se puede actualizar");
-			throw new LoginException("Usuario no encontrado");
-		}
-		Usuario usuarioActual = buscarUsuario(user.getId());
+		Usuario usuarioActual = buscarUsuario(user.getUsername());
 		UsuarioExample example = new UsuarioExample();
 		example.createCriteria().andNombreEqualTo(modifaciones.getNombre()).andApellidoEqualTo(modifaciones.getApellido())
 				.andTelefonoEqualTo(modifaciones.getTelefono()).andEmailEqualTo(modifaciones.getEmail());
@@ -55,18 +54,19 @@ public class PerfilService {
 		return true;
 	}
 
-	public void borrarPerfil(Integer userId) {
-		Integer usuariosBorrados = dao.deleteByPrimaryKey(userId);
+	public void borrarPerfil(String username) {
+		Integer usuariosBorrados = dao.deleteByPrimaryKey(buscarUsuario(username).getId());
 		if (usuariosBorrados != 1){
-			System.out.println("Error borrando usuario de id [" + userId + "]. Se encontraron [" + usuariosBorrados + "] en la base de datos");
+			System.out.println("Error borrando usuario de id [" + buscarUsuario(username).getId() + "]. Se encontraron [" + usuariosBorrados + "] en la base de datos");
 			throw new LoginException("Usuario no encontrado");
 		}
 	}
 
-	private void actualizarContrasenia(Usuario user, String newPassword) {
-		UsuarioExample example = new UsuarioExample();
-		example.createCriteria().andPasswordEqualTo(createEncryptor().encryptPassword(newPassword));
-		dao.updateByExampleSelective(user, example);
+	public void actualizarContrasenia(String username, String newPassword) {
+		Usuario user = buscarUsuario(username);
+		PasswordEncryptor encryptor = createEncryptor();
+		user.setPassword(encryptor.encryptPassword(newPassword));
+		dao.updateByPrimaryKey(user);
 	}
 
 	private void checkPassword(String newPassword, String oldPassword) {
@@ -82,13 +82,17 @@ public class PerfilService {
 		return passwordEncryptor;
 	}
 
-	private Usuario buscarUsuario(Integer id) {
-		Usuario usuario = dao.selectByPrimaryKey(id);
-		if (usuario == null){
-			System.out.println("Usuario de id [" + id + "] no encontrado en la base de datos");
+	public Usuario buscarUsuario(String username){
+		if("".equalsIgnoreCase(username))
+			throw new LoginException("Username vacio");
+		UsuarioExample example = new UsuarioExample();
+		example.createCriteria().andUsernameEqualTo(username);
+		List<Usuario> list = dao.selectByExample(example);
+		if(list.size() != 1){
+			System.out.println("Se encontraron [" + list.size() + "] con username " + username);
 			throw new LoginException("Usuario no encontrado");
 		}
-		return usuario;
+		return list.get(0);
 	}
 
 }

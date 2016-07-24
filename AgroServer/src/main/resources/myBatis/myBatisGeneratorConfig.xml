@@ -42,7 +42,8 @@
 		<table tableName="prestacion" />
 		<table tableName="usuario" /> -->
 		
-		<table tableName="usuario" />
+ 		<table tableName="usuario" />
+ 		<table tableName="maquina_parqueMaquina" />
 		<table tableName="parque_maquina" />
 		<table tableName="maquina" />
 

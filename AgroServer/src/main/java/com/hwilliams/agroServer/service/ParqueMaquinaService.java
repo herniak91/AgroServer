@@ -1,18 +1,26 @@
 package com.hwilliams.agroServer.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.gson.JsonObject;
 import com.hwilliams.agroServer.db.client.MaquinaMapper;
 import com.hwilliams.agroServer.db.client.ParqueMaquinaMapper;
 import com.hwilliams.agroServer.db.model.Maquina;
 import com.hwilliams.agroServer.db.model.ParqueMaquina;
 import com.hwilliams.agroServer.db.model.ParqueMaquinaExample;
+import com.hwilliams.agroServer.db.model.Usuario;
+import com.hwilliams.agroServer.service.util.BeanFactory;
 import com.hwilliams.agroServer.service.util.EstadoParqueMaquina;
 
 @Service
@@ -21,34 +29,27 @@ public class ParqueMaquinaService {
 	@Autowired
 	private ParqueMaquinaMapper serviceDao;
 	
+	@Autowired 
+	private PerfilService perfilService;
+	
 	@Autowired
 	private MaquinaMapper maquinaDao;
 	
 	@Transactional
-	public ParqueMaquina crearParqueMaquina(Integer usuarioId, String rubro, List<Maquina> maquinas){
-		ParqueMaquina parque = new ParqueMaquina();
-		parque.setUsuarioId(usuarioId);
-		parque.setRubro(rubro);
-		parque.setEstado(EstadoParqueMaquina.LIBRE.toString());
-		List<Integer> maquinasIds = new ArrayList<>();
+	public ParqueMaquina crearParqueMaquina(String username, String rubro, List<Maquina> maquinas){
+		Usuario user = perfilService.buscarUsuario(username);
 		for (Maquina maquina : maquinas) {
-			if(maquina.getId() == null)
-				maquinaDao.insert(maquina);
-			maquinasIds.add(maquina.getId());
+			maquinaDao.insert(maquina);
 		}
-		JSONArray jsonArr = new JSONArray();
-		jsonArr.addAll(maquinasIds);
-		parque.setMaquinasJson(jsonArr.toJSONString());
+		ParqueMaquina parque = BeanFactory.createParqueMaquina(user.getId(), rubro, maquinas);
 		serviceDao.insert(parque);
 		return parque;
 	}
-	
 	
 	public void solicitarParqueMaquina(Integer parqueMaquinaId){
 		ParqueMaquina parque = buscarParqueMaquina(parqueMaquinaId);
 		if(!EstadoParqueMaquina.LIBRE.toString().equalsIgnoreCase(parque.getEstado()))
 			throw new RuntimeException("No se puede solicitar parque [" + parque.getId() + "]. Estado actual: " + parque.getEstado());
-
 		parque.setEstado(EstadoParqueMaquina.PEND.toString());
 		serviceDao.updateByPrimaryKey(parque);
 	}
@@ -78,8 +79,26 @@ public class ParqueMaquinaService {
 		}
 	}
 	
-	public List<ParqueMaquina> buscarParquesMaquina(ParqueMaquinaExample example){
-		return serviceDao.selectByExample(example);
+	public Map<ParqueMaquina, List<Maquina>> buscarParquesMaquina(String username){
+		Map<ParqueMaquina, List<Maquina>> map = new HashMap<>();
+		Usuario user = perfilService.buscarUsuario(username);
+		ParqueMaquinaExample example = new ParqueMaquinaExample();
+		example.createCriteria().andUsuarioIdEqualTo(user.getId());
+		List<ParqueMaquina> results = serviceDao.selectByExample(example);
+		for (ParqueMaquina parque : results) {
+			List<Maquina> maquinas = new ArrayList<>();
+			try {
+				JSONArray arrayIds = (JSONArray) new JSONParser().parse(parque.getMaquinasJson());
+				for (Object id : arrayIds) {
+					maquinas.add(maquinaDao.selectByPrimaryKey(Math.toIntExact((long) id)));
+				}
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			map.put(parque, maquinas);
+		}
+		
+		return map;
 	}
 	
 	private ParqueMaquina buscarParqueMaquina(Integer id){
