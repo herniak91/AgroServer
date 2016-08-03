@@ -38,7 +38,7 @@ public class BeanFactory {
 		bean.setEmail(email);
 		return bean;
 	}
-
+	
 	public static synchronized Maquina createMaquina(String tipo, String marca, String modelo) {
 		return createMaquina(tipo, marca, modelo, null);
 	}

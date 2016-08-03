@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +19,7 @@ import com.hwilliams.agroServer.db.model.Maquina;
 import com.hwilliams.agroServer.service.ParqueMaquinaService;
 
 @Controller
-@RequestMapping(value = "/Prestacion")
+@RequestMapping(value = "/Parque")
 public class ParqueMaquinaController {
 
 	@Autowired
@@ -25,7 +27,8 @@ public class ParqueMaquinaController {
 	
 	@RequestMapping(value = "crear")
 	@ResponseBody
-	public GenericJsonResponse crearParqueMaquina(@RequestBody JSONObject jsonParque) {
+	public GenericJsonResponse crearParqueMaquina(@RequestParam("jsonString") String jsonString) {
+		JSONObject jsonParque = createJSONObject(jsonString);
 		String username = (String) jsonParque.get("username");
 		String rubro = (String) jsonParque.get("rubro");
 		JSONArray maquinasArray = (JSONArray) jsonParque.get("maquinas");
@@ -46,5 +49,14 @@ public class ParqueMaquinaController {
 	@RequestMapping(value="cancelar")
 	public void denegarPrestacion(@RequestParam("userId") String userId, @RequestParam("prestacionId") String prestacionId){
 		service.denegarParqueMaquina(Integer.parseInt(userId), Integer.parseInt(prestacionId));
+	}
+	
+	private JSONObject createJSONObject(String str){
+		try {
+			return (JSONObject) new JSONParser().parse(str);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
 	}
 }

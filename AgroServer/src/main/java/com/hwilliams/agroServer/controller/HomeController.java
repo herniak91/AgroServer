@@ -1,5 +1,6 @@
 package com.hwilliams.agroServer.controller;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +11,8 @@ import java.util.Map.Entry;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,6 +46,7 @@ public class HomeController {
 	private ParqueMaquinaService parqueService;
 
 	private static String BUSQUEDA_PARAMETROS;
+	private static JSONObject maquinasInstance;
 
 	@RequestMapping(value = "")
 	public String home() {
@@ -53,29 +57,26 @@ public class HomeController {
 	@ResponseBody
 	public GenericJsonResponse getInfo(@RequestParam(value = "username", required = false) String username) {
 		Map<String, Object> info = new HashMap<>();
-		username = "hernan.federico.williams";
-		info.put("admin", username == null ? null : getUserBasicInfo(username));
+		info.put("admin", username == null ? null : perfilService.getUserBasicInfo(username));
 		Map<String, Object> cotizaciones = cotizacService.buscarCotizaciones();
 		info.put("cotizaciones", cotizaciones.get("granos"));
 		info.put("dolar", cotizaciones.get("dolar"));
 		info.put("mercados", cotizacService.MERCADOS_INTERES);
+		info.put("maquinariaParams", getMaquinasJSON());
 		
 		return GenericJsonResponse.createResponse(info);
 	}
 
-	private JSONArray getUserBasicInfo(String username) {
-		JSONArray listParques = new JSONArray();
-		Map<ParqueMaquina, List<Maquina>> map = parqueService.buscarParquesMaquina(username);
-		for (Entry<ParqueMaquina, List<Maquina>> mapEntry : map.entrySet()) {
-			for (Maquina maquina : mapEntry.getValue()) {
-				maquina.setImagen(null);
-			}
-			JSONObject parque = new JSONObject();
-			parque.put("parque", mapEntry.getKey());
-			parque.put("maquinas", mapEntry.getValue());
-			listParques.add(parque);
+	private JSONObject getMaquinasJSON() {
+		if (maquinasInstance != null)
+			return maquinasInstance;
+		try {
+			maquinasInstance = (JSONObject) new JSONParser().parse( new FileReader("C:/Users/Hernan/Dropbox/App-Resources/maquinas.json"));
+			return maquinasInstance;
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
 		}
-		return listParques;
+		return new JSONObject();
 	}
 
 	private String getParametrosBusqueda() {

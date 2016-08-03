@@ -1,14 +1,19 @@
 package com.hwilliams.agroServer.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jasypt.util.password.ConfigurablePasswordEncryptor;
 import org.jasypt.util.password.PasswordEncryptor;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hwilliams.agroServer.db.client.UsuarioMapper;
+import com.hwilliams.agroServer.db.model.Maquina;
+import com.hwilliams.agroServer.db.model.ParqueMaquina;
 import com.hwilliams.agroServer.db.model.Usuario;
 import com.hwilliams.agroServer.db.model.UsuarioExample;
 import com.hwilliams.agroServer.service.exception.LoginException;
@@ -18,6 +23,9 @@ public class PerfilService {
 
 	@Autowired
 	private UsuarioMapper dao;
+	
+	@Autowired
+	private ParqueMaquinaService parqueService;
 
 	public Usuario crearPerfil(Usuario user) {
 		if (null != user.getId()){
@@ -67,6 +75,21 @@ public class PerfilService {
 		PasswordEncryptor encryptor = createEncryptor();
 		user.setPassword(encryptor.encryptPassword(newPassword));
 		dao.updateByPrimaryKey(user);
+	}
+	
+	public JSONArray getUserBasicInfo(String username) {
+		JSONArray listParques = new JSONArray();
+		Map<ParqueMaquina, List<Maquina>> map = parqueService.buscarParquesMaquina(username);
+		for (Entry<ParqueMaquina, List<Maquina>> mapEntry : map.entrySet()) {
+			for (Maquina maquina : mapEntry.getValue()) {
+				maquina.setImagen(null);
+			}
+			JSONObject parque = new JSONObject();
+			parque.put("parque", mapEntry.getKey());
+			parque.put("maquinas", mapEntry.getValue());
+			listParques.add(parque);
+		}
+		return listParques;
 	}
 
 	private void checkPassword(String newPassword, String oldPassword) {

@@ -1,5 +1,8 @@
 package com.hwilliams.agroServer.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -28,7 +31,10 @@ public class PerfilController {
 	public GenericJsonResponse crearPerfil(@RequestParam("jsonString") String jsonString) {
 		Usuario user = createObject(jsonString, Usuario.class);
 		service.crearPerfil(user);
-		return GenericJsonResponse.createErrorResponse(user);
+		Map<String, Object> response = new HashMap<>();
+		response.put("user", user);
+		response.put("admin", service.getUserBasicInfo(user.getUsername()));
+		return GenericJsonResponse.createResponse(response);
 	}
 	
 	@RequestMapping(value = "login", method = RequestMethod.POST)
@@ -42,7 +48,10 @@ public class PerfilController {
 			String password = (String) json.get("password");
 			System.out.println("Username: " + username + " y Password: " + password);
 			Usuario user = service.loginUsuario(username, password);
-			return GenericJsonResponse.createResponse(user);
+			Map<String, Object> response = new HashMap<>();
+			response.put("user", user);
+			response.put("admin", service.getUserBasicInfo(username));
+			return GenericJsonResponse.createResponse(response);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -54,7 +63,9 @@ public class PerfilController {
 	public GenericJsonResponse actualizarPerfil(@RequestBody String jsonUser){
 		Usuario user = createObject(jsonUser, Usuario.class);
 		service.actualizarPerfil(user, user);
-		return GenericJsonResponse.createErrorResponse(user);
+		Map<String, Object> response = new HashMap<>();
+		response.put("user", user);
+		return GenericJsonResponse.createResponse(response);
 	}
 	
 	@RequestMapping(value = "verificarUsername")
