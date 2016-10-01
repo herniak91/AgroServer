@@ -32,6 +32,8 @@ public class CotizacionesService {
 			map.put("dolar", buscarCotizacionDolar(doc));
 		} catch (IOException e) {
 			e.printStackTrace();
+			map.put("granos", new JSONObject());
+			map.put("dolar", new JSONObject());
 		}
 		return map;
 	}

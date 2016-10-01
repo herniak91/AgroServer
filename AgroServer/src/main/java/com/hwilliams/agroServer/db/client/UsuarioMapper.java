@@ -1,8 +1,7 @@
 package com.hwilliams.agroServer.db.client;
 
-import com.hwilliams.agroServer.db.model.Usuario;
-import com.hwilliams.agroServer.db.model.UsuarioExample;
 import java.util.List;
+
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.Insert;
@@ -11,10 +10,14 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.SelectKey;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
+
+import com.hwilliams.agroServer.db.model.Usuario;
+import com.hwilliams.agroServer.db.model.UsuarioExample;
 
 public interface UsuarioMapper {
     /**
@@ -63,6 +66,7 @@ public interface UsuarioMapper {
         "#{email,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, ",
         "#{username,jdbcType=VARCHAR})"
     })
+    @SelectKey(statement="SELECT nextVal('usuario_pk_seq')", keyProperty="id", before=true, resultType=Integer.class)
     int insert(Usuario record);
 
     /**

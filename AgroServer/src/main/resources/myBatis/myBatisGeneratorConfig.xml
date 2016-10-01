@@ -42,10 +42,9 @@
 		<table tableName="prestacion" />
 		<table tableName="usuario" /> -->
 		
- 		<table tableName="usuario" />
- 		<table tableName="maquina_parqueMaquina" />
+ 		<!-- <table tableName="usuario" /> -->
 		<table tableName="parque_maquina" />
-		<table tableName="maquina" />
+		<!-- <table tableName="maquina" /> -->
 
 	</context>
 </generatorConfiguration>

@@ -2,7 +2,9 @@ package com.hwilliams.agroServer.db.client;
 
 import com.hwilliams.agroServer.db.model.Maquina;
 import com.hwilliams.agroServer.db.model.MaquinaExample;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.Insert;
@@ -11,6 +13,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.SelectKey;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.annotations.UpdateProvider;
@@ -61,6 +64,7 @@ public interface MaquinaMapper {
         "#{marca,jdbcType=VARCHAR}, #{modelo,jdbcType=VARCHAR}, #{atributos,jdbcType=OTHER}, ",
         "#{imagen,jdbcType=BINARY})"
     })
+    @SelectKey(statement="SELECT nextVal('maquina_id_seq')", keyProperty="id", before=true, resultType=Integer.class)
     int insert(Maquina record);
 
     /**
