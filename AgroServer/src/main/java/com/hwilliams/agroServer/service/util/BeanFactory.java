@@ -14,13 +14,15 @@ import com.hwilliams.agroServer.service.exception.MaquinaException;
 public class BeanFactory {
 
 	@SuppressWarnings("unchecked")
-	public static synchronized ParqueMaquina createParqueMaquina(Integer userId, String rubro, List<Maquina> maquinas) {
+	public static synchronized ParqueMaquina createParqueMaquina(Integer userId, String rubro, List<Maquina> maquinas, Double lat, Double lon) {
 		if (userId == null)
 			throw new RuntimeException("UserId is null");
 
 		ParqueMaquina bean = new ParqueMaquina();
 		bean.setUsuarioId(userId);
 		bean.setRubro(rubro);
+		bean.setLat(lat.floatValue());
+		bean.setLon(lon.floatValue());
 		JSONArray array = new JSONArray();
 		for (Maquina maquina : maquinas) {
 			array.add(maquina.getId());

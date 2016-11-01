@@ -61,7 +61,7 @@ public interface MaquinaMapper {
         "marca, modelo, atributos, ",
         "imagen)",
         "values (#{id,jdbcType=INTEGER}, #{tipo,jdbcType=VARCHAR}, ",
-        "#{marca,jdbcType=VARCHAR}, #{modelo,jdbcType=VARCHAR}, #{atributos,jdbcType=OTHER}, ",
+        "#{marca,jdbcType=VARCHAR}, #{modelo,jdbcType=VARCHAR}, cast(#{atributos,jdbcType=OTHER} as json), ",
         "#{imagen,jdbcType=BINARY})"
     })
     @SelectKey(statement="SELECT nextVal('maquina_id_seq')", keyProperty="id", before=true, resultType=Integer.class)

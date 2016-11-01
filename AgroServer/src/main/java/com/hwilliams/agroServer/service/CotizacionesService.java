@@ -1,5 +1,6 @@
 package com.hwilliams.agroServer.service;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -9,8 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.jsoup.Jsoup;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -24,17 +28,66 @@ public class CotizacionesService {
 	public static final List<String> MERCADOS_INTERES = Arrays.asList("CHICAGO", "MATBA", "ROFEX");
 	private static final List<String> GRANOS_INTERES = Arrays.asList("SOJA", "MAIZ", "TRIGO");
 
-	public Map<String, Object> buscarCotizaciones() {
-		Map<String, Object> map = new HashMap<>();
+	private static List<Cotizacion> cotizaciones = null;
+	private static JSONObject cotizacionDolar = null;
+	
+	private static final Logger logger = Logger.getLogger(CotizacionesService.class);
+
+	static {
+		cotizaciones = new ArrayList<>();
+		loadFile();
+	}
+	
+	private static void loadFile(){
+		String filePath = "C:/Users/Hernan/Dropbox/App-Resources/cotizaciones.json";
+		logger.info("Cargando archivo de cotizaciones [" + filePath + "]");;
 		try {
-			Document doc = Jsoup.connect("http://www.elrural.com/").timeout(10*1000).get();
-			map.put("granos", buscarCotizacionesGranos(doc));
-			map.put("dolar", buscarCotizacionDolar(doc));
-		} catch (IOException e) {
+			JSONObject obj = (JSONObject) new JSONParser().parse(new FileReader(filePath));
+			JSONArray cereales = (JSONArray) obj.get("cereales");
+			for (Object object : cereales) {
+				JSONObject cereal = (JSONObject) object;
+				String nombre = (String) cereal.get("nombre");
+				
+				JSONArray cotizaciones = (JSONArray) cereal.get("cotizaciones");
+				for (Object cotizacion : cotizaciones) {
+					JSONObject json = (JSONObject) cotizacion;
+					Cotizacion cot = new Cotizacion();
+					cot.setNombre(nombre.toUpperCase());
+					cot.setMercado((String) json.get("mercado"));
+					cot.setValor("U$" + (String) json.get("valor"));
+					cot.setVariacion((String) json.get("variacion"));
+					cot.setIndicador((String) json.get("indicador"));
+					CotizacionesService.cotizaciones.add(cot);
+				}
+			}
+			logger.info("Se cargaron [" + cotizaciones.size() + "] nuevas cotizaciones.");
+			cotizacionDolar = (JSONObject) obj.get("dolar");
+			logger.info("Se cargo la cotizacion del dolar");
+		} catch (IOException | ParseException e) {
+			logger.error("Error cargando archivo de cotizaciones. " + e);
 			e.printStackTrace();
-			map.put("granos", new JSONObject());
-			map.put("dolar", new JSONObject());
 		}
+	}
+	
+	public Map<String, Object> buscarCotizaciones() {
+//		Map<String, Object> map = new HashMap<>();
+//		try {
+//			Document doc = Jsoup.connect("http://www.elrural.com/").timeout(10 * 1000).get();
+//			map.put("granos", buscarCotizacionesGranos(doc));
+//			map.put("dolar", buscarCotizacionDolar(doc));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			map.put("granos", new JSONObject());
+//			map.put("dolar", new JSONObject());
+//		}
+//		return map;
+		return buscarCotizacionesHardcoded();
+	}
+
+	private Map<String, Object> buscarCotizacionesHardcoded() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("granos", cotizaciones);
+		map.put("dolar", cotizacionDolar);
 		return map;
 	}
 

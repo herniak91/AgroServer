@@ -3,6 +3,7 @@ package com.hwilliams.agroServer.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -22,6 +23,7 @@ import com.hwilliams.agroServer.service.PerfilService;
 @Controller
 @RequestMapping(value = "/Perfil")
 public class PerfilController {
+	private static final Logger logger = Logger.getLogger(PerfilController.class);
 	
 	@Autowired
 	private PerfilService service;
@@ -46,7 +48,6 @@ public class PerfilController {
 			json = (JSONObject) parser.parse(jsonString);
 			String username = (String) json.get("username");
 			String password = (String) json.get("password");
-			System.out.println("Username: " + username + " y Password: " + password);
 			Usuario user = service.loginUsuario(username, password);
 			Map<String, Object> response = new HashMap<>();
 			response.put("user", user);
@@ -58,11 +59,12 @@ public class PerfilController {
 		return GenericJsonResponse.createErrorResponse(null);
 	}
 
-	@RequestMapping(value = "actualizar")
+	@RequestMapping(value = "actualizar", method = RequestMethod.POST)
 	@ResponseBody
-	public GenericJsonResponse actualizarPerfil(@RequestBody String jsonUser){
+	public GenericJsonResponse actualizarPerfil(@RequestParam("jsonString") String jsonUser){
 		Usuario user = createObject(jsonUser, Usuario.class);
-		service.actualizarPerfil(user, user);
+		logger.info("Actualizando informacion de usuario [" + user.getUsername() + "]");
+		service.actualizarPerfil(user.getUsername(), user);
 		Map<String, Object> response = new HashMap<>();
 		response.put("user", user);
 		return GenericJsonResponse.createResponse(response);

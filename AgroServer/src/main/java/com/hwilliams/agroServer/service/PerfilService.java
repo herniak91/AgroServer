@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
 import org.jasypt.util.password.ConfigurablePasswordEncryptor;
 import org.jasypt.util.password.PasswordEncryptor;
 import org.json.simple.JSONArray;
@@ -20,6 +21,7 @@ import com.hwilliams.agroServer.service.exception.LoginException;
 
 @Service
 public class PerfilService {
+	private static final Logger logger = Logger.getLogger(PerfilService.class);
 
 	@Autowired
 	private UsuarioMapper dao;
@@ -29,7 +31,7 @@ public class PerfilService {
 
 	public Usuario crearPerfil(Usuario user) {
 		if (null != user.getId()){
-			System.out.println("Usuario ya tiene id [" + user.getId() + "]. No se puede crear");
+			logger.error("Usuario ya tiene id [" + user.getId() + "]. No se puede crear");
 			throw new LoginException("Usuario existente");
 		}
 		PasswordEncryptor encryptor = createEncryptor();
@@ -46,8 +48,8 @@ public class PerfilService {
 		return user;
 	}
 
-	public void actualizarPerfil(Usuario user, Usuario modifaciones) {
-		Usuario usuarioActual = buscarUsuario(user.getUsername());
+	public void actualizarPerfil(String username, Usuario modifaciones) {
+		Usuario usuarioActual = buscarUsuario(username);
 		UsuarioExample example = new UsuarioExample();
 		example.createCriteria().andNombreEqualTo(modifaciones.getNombre()).andApellidoEqualTo(modifaciones.getApellido())
 				.andTelefonoEqualTo(modifaciones.getTelefono()).andEmailEqualTo(modifaciones.getEmail());
@@ -65,7 +67,7 @@ public class PerfilService {
 	public void borrarPerfil(String username) {
 		Integer usuariosBorrados = dao.deleteByPrimaryKey(buscarUsuario(username).getId());
 		if (usuariosBorrados != 1){
-			System.out.println("Error borrando usuario de id [" + buscarUsuario(username).getId() + "]. Se encontraron [" + usuariosBorrados + "] en la base de datos");
+			logger.error("Error borrando usuario de id [" + buscarUsuario(username).getId() + "]. Se encontraron [" + usuariosBorrados + "] en la base de datos");
 			throw new LoginException("Usuario no encontrado");
 		}
 	}
@@ -112,10 +114,14 @@ public class PerfilService {
 		example.createCriteria().andUsernameEqualTo(username);
 		List<Usuario> list = dao.selectByExample(example);
 		if(list.size() != 1){
-			System.out.println("Se encontraron [" + list.size() + "] con username " + username);
+			logger.error("Se encontraron [" + list.size() + "] con username " + username);
 			throw new LoginException("Usuario no encontrado");
 		}
 		return list.get(0);
+	}
+	
+	public Usuario buscarUsuario(Integer userId){
+		return dao.selectByPrimaryKey(userId);
 	}
 
 }

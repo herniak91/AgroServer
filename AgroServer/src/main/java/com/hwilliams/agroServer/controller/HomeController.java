@@ -2,14 +2,10 @@ package com.hwilliams.agroServer.controller;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.json.simple.JSONArray;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,8 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hwilliams.agroServer.controller.util.GenericJsonResponse;
-import com.hwilliams.agroServer.db.model.Maquina;
-import com.hwilliams.agroServer.db.model.ParqueMaquina;
 import com.hwilliams.agroServer.service.CotizacionesService;
 import com.hwilliams.agroServer.service.ParqueMaquinaService;
 import com.hwilliams.agroServer.service.PerfilService;
@@ -35,6 +29,7 @@ import com.hwilliams.agroServer.service.PerfilService;
 @RestController
 @RequestMapping(value = "/Home")
 public class HomeController {
+	private static final Logger logger = Logger.getLogger(HomeController.class);
 
 	@Autowired
 	private CotizacionesService cotizacService;
@@ -45,7 +40,6 @@ public class HomeController {
 	@Autowired
 	private ParqueMaquinaService parqueService;
 
-	private static String BUSQUEDA_PARAMETROS;
 	private static JSONObject maquinasInstance;
 
 	@RequestMapping(value = "")
@@ -56,6 +50,7 @@ public class HomeController {
 	@RequestMapping(value = "initialInfo")
 	@ResponseBody
 	public GenericJsonResponse getInfo(@RequestParam(value = "username", required = false) String username) {
+		logger.info("Obteniendo informacion inicial para usuario [" + username + "]");
 		Map<String, Object> info = new HashMap<>();
 		info.put("admin", username == null ? null : perfilService.getUserBasicInfo(username));
 		Map<String, Object> cotizaciones = cotizacService.buscarCotizaciones();
@@ -68,28 +63,20 @@ public class HomeController {
 	}
 
 	private JSONObject getMaquinasJSON() {
-		if (maquinasInstance != null)
+		String filePath = "C:/Users/Hernan/Dropbox/App-Resources/maquinas.json";
+		logger.debug("Obteniendo arquitectura de parques de maquina del archivo [" + filePath + "]");
+		if (maquinasInstance != null){
+			logger.debug("Archivo en memoria. No hace falta carga");			
 			return maquinasInstance;
+		}
 		try {
-			maquinasInstance = (JSONObject) new JSONParser().parse( new FileReader("C:/Users/Hernan/Dropbox/App-Resources/maquinas.json"));
+			logger.debug("Leyendo archivo");
+			maquinasInstance = (JSONObject) new JSONParser().parse( new FileReader(filePath));
 			return maquinasInstance;
 		} catch (IOException | ParseException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 		return new JSONObject();
-	}
-
-	private String getParametrosBusqueda() {
-		if (BUSQUEDA_PARAMETROS == null) {
-			byte[] encoded;
-			try {
-				encoded = Files.readAllBytes(Paths.get(""));
-				return new String(encoded);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return BUSQUEDA_PARAMETROS;
 	}
 
 }

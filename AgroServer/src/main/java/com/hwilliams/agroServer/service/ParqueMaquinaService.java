@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -26,6 +27,7 @@ import com.hwilliams.agroServer.service.util.EstadoParqueMaquina;
 
 @Service
 public class ParqueMaquinaService {
+	private static final Logger logger = Logger.getLogger(ParqueMaquinaService.class);
 
 	@Autowired
 	private ParqueMaquinaMapper serviceDao;
@@ -37,13 +39,14 @@ public class ParqueMaquinaService {
 	private MaquinaMapper maquinaDao;
 	
 	@Transactional
-	public ParqueMaquina crearParqueMaquina(String username, String rubro, List<Maquina> maquinas){
+	public ParqueMaquina crearParqueMaquina(String username, String rubro, List<Maquina> maquinas, Double lat, Double lon){
+		logger.info("Crando Parque de Maquina[" + rubro + "] para usuario [" + username + "]");
 		Usuario user = perfilService.buscarUsuario(username);
 		for (Maquina maquina : maquinas) {
 			if(maquina.getId() != null)
 				maquinaDao.insert(maquina);
 		}
-		ParqueMaquina parque = BeanFactory.createParqueMaquina(user.getId(), rubro, maquinas);
+		ParqueMaquina parque = BeanFactory.createParqueMaquina(user.getId(), rubro, maquinas, lat, lon);
 		serviceDao.insert(parque);
 		return parque;
 	}
@@ -81,6 +84,11 @@ public class ParqueMaquinaService {
 		}
 	}
 	
+	
+	public void borrarPrestacion(int parqueMaquinaId) {
+		serviceDao.deleteByPrimaryKey(parqueMaquinaId);
+	}
+	
 	public Map<ParqueMaquina, List<Maquina>> buscarParquesMaquina(String username){
 		Map<ParqueMaquina, List<Maquina>> map = new HashMap<>();
 		Usuario user = perfilService.buscarUsuario(username);
@@ -104,6 +112,7 @@ public class ParqueMaquinaService {
 	}
 	
 	public List<ParqueMaquina> buscarParquesMaquina(List<String> rubros, final Double lat, final Double lon){
+		logger.info("Iniciando busqueda en ubicacion: (" + lat + ", " + lon + ") y rubros [" + rubros.get(0) + "]");
 		ParqueMaquinaExample example = new ParqueMaquinaExample();
 		example.createCriteria().andRubroIn(rubros).andEstadoEqualTo(EstadoParqueMaquina.LIBRE.toString());
 		List<ParqueMaquina> results = serviceDao.selectByExample(example);
@@ -142,7 +151,7 @@ public class ParqueMaquinaService {
 				results.remove(parque);
 			}
 		}
-		
+		logger.info("Se encontraron [" + results.size() + "] resultados");
 		return results;
 	}
 	
@@ -180,5 +189,25 @@ public class ParqueMaquinaService {
 			throw new RuntimeException("ParqueMaquina no encontrada");
 		return ParqueMaquina;
 	}
-	
+
+	public Map<String, Object> buscarPrestacionEnDetalle(int parqueId) {
+		Map<String, Object> map = new HashMap<>();
+		ParqueMaquina parque = serviceDao.selectByPrimaryKey(parqueId);
+		map.put("parque", parque);
+		List<Maquina> maquinas = new ArrayList<>();
+		try {
+			JSONArray arrayIds = (JSONArray) new JSONParser().parse(parque.getMaquinasJson());
+			for (Object id : arrayIds) {
+				maquinas.add(maquinaDao.selectByPrimaryKey(Math.toIntExact((long) id)));
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		map.put("maquinas", maquinas);
+		Usuario user = perfilService.buscarUsuario(parque.getUsuarioId());
+		user.setPassword(null);
+		map.put("user", user);
+		return map;
+	}
+
 }
