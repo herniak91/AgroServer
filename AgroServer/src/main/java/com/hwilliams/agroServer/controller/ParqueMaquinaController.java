@@ -54,6 +54,28 @@ public class ParqueMaquinaController {
 		return GenericJsonResponse.createResponse(listParques);
 	}
 	
+	@RequestMapping(value = "editar")
+	@ResponseBody
+	public GenericJsonResponse editarParqueMaquina(@RequestParam("jsonString") String jsonString) {
+		logger.info("Iniciando edicion de Parque de Maquinas");
+		JSONObject jsonParque = createJSONObject(jsonString);
+		JSONObject parqueAModificar = (JSONObject) jsonParque.get("parque");
+		JSONArray maquinasArray = (JSONArray) jsonParque.get("maquinas");
+		List<Maquina> maquinas = new ArrayList<>();
+		for (Object object : maquinasArray) {
+			JSONObject json = (JSONObject) object;
+			maquinas.add(BeanFactory.createMaquinaFromJson(json));
+		}
+		
+//		ParqueMaquina parqueCreado = service.editarParqueMaquina(parque, maquinas);
+		JSONArray listParques = new JSONArray();
+//		JSONObject parqueModificado = new JSONObject();
+//		parqueModificado.put("parque", parqueCreado);
+//		parqueModificado.put("maquinas", maquinas);
+//		listParques.add(parqueModificado);
+		return GenericJsonResponse.createResponse(listParques);
+	}
+	
 	@RequestMapping(value="confirmar")
 	public void confirmarPrestacion(@RequestParam("userId") String userId, @RequestParam("prestacionId") String prestacionId){
 		logger.info("Confirmacion de prestacion de Parque de Maquina con ID [" + prestacionId + "] al usuario [" + prestacionId + "]");

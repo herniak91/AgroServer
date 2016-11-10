@@ -51,6 +51,20 @@ public class ParqueMaquinaService {
 		return parque;
 	}
 	
+	@Transactional
+	public ParqueMaquina editarParqueMaquina(ParqueMaquina parque, List<Maquina> maquinas) {
+		logger.info("Editando Parque de Maquina[" + parque.getId() + "]");
+		for (Maquina maquina : maquinas) {
+			MaquinaExample example = new MaquinaExample();
+			example.createCriteria().andIdEqualTo(maquina.getId());
+			maquinaDao.updateByExample(maquina, example);
+		}
+		ParqueMaquinaExample example = new ParqueMaquinaExample();
+		example.createCriteria().andIdEqualTo(parque.getId());
+		serviceDao.updateByExample(parque, example);
+		return parque;
+	}
+	
 	public void solicitarParqueMaquina(Integer parqueMaquinaId){
 		ParqueMaquina parque = buscarParqueMaquina(parqueMaquinaId);
 		if(!EstadoParqueMaquina.LIBRE.toString().equalsIgnoreCase(parque.getEstado()))
@@ -209,5 +223,4 @@ public class ParqueMaquinaService {
 		map.put("user", user);
 		return map;
 	}
-
 }
